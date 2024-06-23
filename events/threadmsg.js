@@ -2,6 +2,7 @@ const { Events } = require('discord.js');
 require('dotenv').config();
 require('node-fetch');
 const openai_token = "Bearer " + process.env.OPENAI
+const huggingface_token = "Bearer " + process.env.HUGGINGFACE
 
 module.exports = {
   name: Events.MessageCreate,
@@ -9,7 +10,25 @@ module.exports = {
   async execute(message) {
     if (message.channel.isThread() && message.channel.name.includes("Conversation with")) {
       if (message.author.bot) return;
-      console.log(openai_token)
+      // get old messages there
+      let history = ""
+      message.channel.messages.fetch({ limit: 10 }).then(messages => {
+        messages.forEach(element => {
+          if (element.author.bot) {
+            history = history.concat("Bot: "+element.content+", ")
+          }
+          else {
+            history = history.concat("User: "+element.content+", ")  
+
+          }
+        });
+
+        history += "User: "+message.content
+        console.log(history)
+      })
+      .catch(console.error);
+      console.log(history)
+
       fetch('https://jamsapi.hackclub.dev/openai/chat/completions', {
         method: 'POST', //GET, POST, PUT, DELETE
         headers: {
@@ -23,7 +42,7 @@ module.exports = {
             'messages': [
               {
                 'role': 'user',
-                'content': message.content
+                'content': history
               }
             ],
           }
