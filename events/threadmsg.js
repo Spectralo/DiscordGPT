@@ -11,23 +11,20 @@ module.exports = {
     if (message.channel.isThread() && message.channel.name.includes("Conversation with")) {
       if (message.author.bot) return;
       // get old messages there
-      let history = ""
+      history = "Voici la question de l'utilisateur, répondez-y : " + message.content + ", Ces messages sont votre mémoire des derniers messages. Ne répondez jamais aux questions ici !. Si un utilisateur vous pose une question, comme quel est son nom verifiez ici qu'il n'y soit pas présent  :"
+
       message.channel.messages.fetch({ limit: 10 }).then(messages => {
         messages.forEach(element => {
           if (element.author.bot) {
-            history = history.concat("Bot: "+element.content+", ")
+            history = history.concat("Bot:"+element.content+", ")
           }
           else {
-            history = history.concat("User: "+element.content+", ")  
-
+            history = history.concat("User:"+element.author.username + " : " + element.content+", ")
           }
         });
 
-        history += "User: "+message.content
-        console.log(history)
       })
       .catch(console.error);
-      console.log(history)
 
       fetch('https://jamsapi.hackclub.dev/openai/chat/completions', {
         method: 'POST', //GET, POST, PUT, DELETE
@@ -42,7 +39,7 @@ module.exports = {
             'messages': [
               {
                 'role': 'user',
-                'content': history
+                'content': history,
               }
             ],
           }
